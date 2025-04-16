@@ -1,0 +1,17 @@
+:root {
+    --bg-color: #C9E5FF;
+    --text-color: #296399;
+    --sec-text-color: rgba(41, 99, 153, 0.7);
+    --icon-color: #296399;
+    --accent-color: #296399;
+    --box-shadow: 0 0px 20px 0 rgba(9, 0, 150, 0.20);
+    --font-family: "Montserrat", sans-serif;
+  }
+  
+  [data-theme="dark"] {
+    --bg-color: #1F2E54;
+    --text-color: #DFE0E6;
+    --sec-text-color: rgba(255, 255, 255, 0.7);
+    --icon-color: #296399;
+    --accent-color: #C9AEFE;
+  }
