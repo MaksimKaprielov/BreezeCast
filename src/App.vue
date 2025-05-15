@@ -1,16 +1,34 @@
 <script setup>
-import SvgIcon from './components/SvgIcon.vue'
-import SearchInput from './components/SearchInput.vue'
 import MainBlock from '@/components/MainBlock.vue'
 import InfoBlock from '@/components/InfoBlock.vue'
-import { onMounted, ref } from 'vue'
+import { ref, onMounted } from 'vue'
+import { getWeather } from '@/api/api.js'
 
+// тема
 const theme = ref('light');
-
 const toggleTheme = () => {
   theme.value = theme.value === 'light' ? 'dark' : 'light';
   document.documentElement.setAttribute('data-theme', theme.value);
   localStorage.setItem('theme', theme.value);
+}
+
+// состояние города и погоды
+const city = ref('Краснодар')
+const weatherData = ref(null)
+const error = ref(null)
+
+const fetchWeather = async () => {
+  if (!city.value.trim()) {
+    error.value = 'Введите название города';
+    return;
+  }
+  const data = await getWeather(city.value)
+  if (data) {
+    weatherData.value = data
+    error.value = null
+  } else {
+    error.value = 'Город не найден'
+  }
 }
 
 onMounted(() => {
@@ -19,9 +37,10 @@ onMounted(() => {
     theme.value = savedTheme;
     document.documentElement.setAttribute('data-theme', savedTheme);
   }
+
+  fetchWeather()
 })
 </script>
-
 
 <template>
   <div class="wrapper">
@@ -36,38 +55,54 @@ onMounted(() => {
         </svg>
       </button>
     </header>
+
     <main>
       <header>
-        <SearchInput />
+        <div class="search-input">
+          <input type="search"
+                 id="searchInput"
+                 placeholder="Введите город"
+                 v-model="city"
+          >
+          <button @click="fetchWeather">
+            <svg>
+              <use href="#icon-search"></use>
+            </svg>
+          </button>
+        </div>
+        <p v-if="error" class="error">{{ error }}</p>
       </header>
-      <main>
-        <MainBlock
-          city="Краснодар"
-          weather-icon="#icon-cloudy_rain"
-          main-temperature="+9"
-          main-name-weather="Ночной дождь"
-          feels-like="+6"
 
-          wind="26"
-          humidity="83"
-          pressure="1010"
-          max_temp="9"
-          min_temp="1"
-          clouds="100"
+      <main v-if="weatherData">
+        <MainBlock
+            :city="weatherData.name"
+            :weather-icon="'#icon-' + weatherData.weather[0].main.toLowerCase()"
+            :main-temperature="Math.round(weatherData.main.temp) + '°C'"
+            :main-name-weather="weatherData.weather[0].description"
+            :feels-like="Math.round(weatherData.main.feels_like) + '°C'"
+            :wind="weatherData.wind.speed"
+            :humidity="weatherData.main.humidity"
+            :pressure="weatherData.main.pressure"
+            :max_temp="Math.round(weatherData.main.temp_max)"
+            :min_temp="Math.round(weatherData.main.temp_min)"
+            :clouds="weatherData.clouds.all"
         />
+
         <InfoBlock
-          min_temp="1"
-          max_temp="9"
-          main-weather-name="Легкий дождь"
-          humidity="83"
-          wind="26"
+            :min_temp="Math.round(weatherData.main.temp_min)"
+            :max_temp="Math.round(weatherData.main.temp_max)"
+            :main-weather-name="weatherData.weather[0].description"
+            :humidity="weatherData.main.humidity"
+            :wind="weatherData.wind.speed"
         />
       </main>
     </main>
   </div>
 </template>
 
-
 <style scoped>
-
+.error {
+  color: red;
+  margin-top: 8px;
+}
 </style>
